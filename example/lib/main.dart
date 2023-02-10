@@ -54,12 +54,15 @@ class Example extends StatefulWidget {
 
 /// Example page using [GoogleMap].
 class ExampleState extends State<Example> {
+  GoogleMapController? mapController;
+
   /// Camera position on Google Maps.
   /// Used as center point when running geo query.
   CameraPosition _cameraPosition = _initialCameraPosition;
 
   /// Detection radius (km) from the center point when running geo query.
   double _radiusInKm = _initialRadiusInKm;
+  double _zoom = _initialZoom;
 
   /// [Marker]s on Google Maps.
   Set<Marker> _markers = {};
@@ -160,6 +163,11 @@ class ExampleState extends State<Example> {
                 strokeWidth: 0,
               ),
             },
+            onMapCreated: (controller) {
+              setState(() {
+                mapController = controller;
+              });
+            },
             onCameraMove: (cameraPosition) {
               debugPrint('📷 lat: ${cameraPosition.target.latitude}, '
                   'lng: ${cameraPosition.target.latitude}');
@@ -221,6 +229,37 @@ class ExampleState extends State<Example> {
                           longitude: _cameraPosition.target.longitude,
                           radiusInKm: _radiusInKm,
                         );
+                        setState(() {});
+                      },
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Current zoom: '
+                      '${(_initialZoom - _zoom + 1).toStringAsFixed(1)} (level)',
+                      style: const TextStyle(color: Colors.white),
+                    ),
+                    const SizedBox(height: 8),
+                    Slider(
+                      value: _initialZoom - _zoom,
+                      min: 0,
+                      max: 6,
+                      // divisions: 9,
+                      label: _zoom.toStringAsFixed(1),
+                      onChanged: (double value) {
+                        _zoom = _initialZoom - value;
+                        mapController?.animateCamera(
+                          CameraUpdate.newCameraPosition(
+                            CameraPosition(
+                              target: LatLng(
+                                _cameraPosition.target.latitude,
+                                _cameraPosition.target.longitude,
+                              ),
+                              zoom: _zoom,
+                            ),
+                            //17 is new zoom level
+                          ),
+                        );
+                        print(_cameraPosition.zoom);
                         setState(() {});
                       },
                     ),
