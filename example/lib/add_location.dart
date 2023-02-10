@@ -59,7 +59,7 @@ class AddLocationDialogState extends State<AddLocationDialog> {
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(10),
               ),
-              label: const Text('latitude'),
+              label: const Text('longitude'),
             ),
           ),
           const SizedBox(height: 16),
