@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:rxdart/rxdart.dart';
+import 'package:async/async.dart' show StreamGroup;
 
 import '../geoflutterfire_plus.dart';
 import 'math.dart';
@@ -307,17 +308,27 @@ class GeoCollectionReference<T> {
   ///
   /// // [1, 2, 3, 11, 12, 13]
   /// ```
+  // Stream<List<QueryDocumentSnapshot<T>>> _mergeCollectionStreams(
+  //   List<Stream<List<QueryDocumentSnapshot<T>>>> collectionStreams,
+  // ) =>
+  //     Rx.combineLatest<List<QueryDocumentSnapshot<T>>,
+  //         List<QueryDocumentSnapshot<T>>>(
+  //       collectionStreams,
+  //       (values) => [
+  //         for (final queryDocumentSnapshots in values)
+  //           ...queryDocumentSnapshots,
+  //       ],
+  //     );
+
   Stream<List<QueryDocumentSnapshot<T>>> _mergeCollectionStreams(
     List<Stream<List<QueryDocumentSnapshot<T>>>> collectionStreams,
-  ) =>
-      Rx.combineLatest<List<QueryDocumentSnapshot<T>>,
-          List<QueryDocumentSnapshot<T>>>(
-        collectionStreams,
-        (values) => [
-          for (final queryDocumentSnapshots in values)
-            ...queryDocumentSnapshots,
-        ],
-      );
+  ) async* {
+    List<QueryDocumentSnapshot<T>> mergedStream = [];
+    await for (final stream in StreamGroup.merge(collectionStreams)) {
+      mergedStream.addAll(stream);
+      yield mergedStream;
+    }
+  }
 
   /// Merge given list of collection futures.
   Future<List<QueryDocumentSnapshot<T>>> _mergeCollectionFutures(
